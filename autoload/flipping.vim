@@ -7,6 +7,10 @@ if exists('g:vim_flipping_loaded') && g:vim_flipping_loaded
 endif
 let g:vim_flipping_loaded = 1
 
+if !exists('g:vim_flipping_mkdir')
+	let g:vim_flipping_mkdir = 0
+endif
+
 func! flipping#flip()
 python << PYTHON
 from __future__ import print_function
@@ -14,6 +18,8 @@ import errno
 import os
 import re
 import vim
+
+MKDIR_P = vim.vars["vim_flipping_mkdir"] == 1
 
 filepath = vim.eval("expand('%:p')")
 subst    = {
@@ -29,7 +35,8 @@ def switch(path):
 	"""Switch to new buffer if 'path' is not 'None'.
 	"""
 	if path:
-		mkdir_p(path)
+		if MKDIR_P:
+			mkdir_p(path)
 		vim.command(":e {path}".format(path=path))
 	else:
 		warn("No matching file")
