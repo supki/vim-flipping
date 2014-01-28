@@ -9,10 +9,11 @@ let g:vim_flipping_loaded = 1
 
 func! flipping#flip()
 python << PYTHON
+from __future__ import print_function
 import re
 import vim
 
-filename = vim.eval("expand('%:p')")
+filepath = vim.eval("expand('%:p')")
 subst    = {
 	r'src/Main.(l?)hs':       r'test/Spec.\1hs'
   , r'test/Spec.(l?)hs':      r'src/Main.\1hs'
@@ -22,14 +23,22 @@ subst    = {
   , r'spec/(.+)_spec.rb':     r'lib/\1.rb'
 }
 
-def matching_file():
-	"""Return the first matching file from the list of patterns
+def switch(path):
+	"""Switch to new buffer if 'path' is not 'None'.
+	"""
+	if path:
+		vim.command(":e {path}".format(path=path))
+	else:
+		print("vim-flipping: No matching file", file=sys.stderr)
+
+def match(path):
+	"""Return the first matching file from the list of patterns.
 	"""
 	for pattern, replacement in subst.items():
-		newfile, n = re.subn(pattern, replacement, filename)
+		newpath, n = re.subn(pattern, replacement, path)
 		if n > 0:
-			return newfile
+			return newpath
 
-vim.command(":e {path}".format(path=matching_file()))
+switch(match(filepath))
 PYTHON
 endfunction
