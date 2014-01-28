@@ -23,10 +23,19 @@ subst    = {
   , r'spec/(.+)_spec.rb':     r'lib/\1.rb'
 }
 
+class FlippingError(StandardError):
+	pass
+
 def warn(str):
 	"""Print a message to stderr with the plugin name prefix.
 	"""
 	print("vim-flipping: {str}".format(str=str), file=sys.stderr)
+
+def error(str):
+	"""Warn and exit.
+	"""
+	warn(str)
+	raise FlippingError("Terminated")
 
 def switch(path):
 	"""Switch to new buffer if 'path' is not 'None'.
@@ -45,8 +54,11 @@ def match(path):
 			if n > 0:
 				return newpath
 		except re.error as ex:
-			warn("{ex} in {pattern}".format(ex=ex, pattern=pattern))
+			error("{ex} in {pat}, {repl} pair".format(ex=ex, pat=pattern, repl=replacement))
 
-switch(match(filepath))
+try:
+	switch(match(filepath))
+except StandardError as ex:
+	warn(ex)
 PYTHON
 endfunction
