@@ -11,6 +11,10 @@ if !exists('g:vim_flipping_mkdir')
 	let g:vim_flipping_mkdir = 0
 endif
 
+if !exists('g:vim_flipping_substitutions')
+	let g:vim_flipping_substitutions = {}
+endif
+
 func! flipping#flip()
 python << PYTHON
 from __future__ import print_function
@@ -19,17 +23,15 @@ import os
 import re
 import vim
 
-MKDIR_P = vim.vars["vim_flipping_mkdir"] == 1
+FILEPATH = vim.eval("expand('%:p')")
+MKDIR_P  = vim.vars["vim_flipping_mkdir"] == 1
+SUBST    = vim.vars["vim_flipping_substitutions"]
 
-filepath = vim.eval("expand('%:p')")
-subst    = {
-    r'src/Main(\.l?hs)':      r'test/Spec\1'
-  , r'test/Spec(\.l?hs)':     r'src/Main\1'
-  , r'src/(.+)(\.l?hs)':      r'test/\1Spec\2'
-  , r'test/(.+)Spec(\.l?hs)': r'src/\1\2'
-  , r'lib/(.+).rb':           r'spec/\1_spec.rb'
-  , r'spec/(.+)_spec.rb':     r'lib/\1.rb'
-}
+def main():
+    try:
+        switch(match(FILEPATH))
+    except StandardError as ex:
+        warn(ex)
 
 def switch(path):
     """Switch to new buffer if 'path' is not 'None'.
@@ -53,7 +55,7 @@ def mkdir_p(path):
 def match(path):
     """Return the first matching file from the list of patterns.
     """
-    for pattern, replacement in subst.items():
+    for pattern, replacement in SUBST.items():
         try:
             newpath, n = re.subn(pattern, replacement, path)
             if n > 0:
@@ -75,9 +77,6 @@ def error(str):
     warn(str)
     raise FlippingError("Terminated")
 
-try:
-    switch(match(filepath))
-except StandardError as ex:
-    warn(ex)
+main()
 PYTHON
 endfunction
