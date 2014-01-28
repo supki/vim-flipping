@@ -15,13 +15,18 @@ import vim
 
 filepath = vim.eval("expand('%:p')")
 subst    = {
-	r'src/Main.(l?)hs':       r'test/Spec.\1hs'
-  , r'test/Spec.(l?)hs':      r'src/Main.\1hs'
+    r'src/Main(\.l?hs)':      r'test/Spec\1'
+  , r'test/Spec(\.l?hs)':     r'src/Main\1'
   , r'src/(.+)(\.l?hs)':      r'test/\1Spec\2'
   , r'test/(.+)Spec(\.l?hs)': r'src/\1\2'
   , r'lib/(.+).rb':           r'spec/\1_spec.rb'
   , r'spec/(.+)_spec.rb':     r'lib/\1.rb'
 }
+
+def warn(str):
+	"""Print a message to stderr with the plugin name prefix.
+	"""
+	print("vim-flipping: {str}".format(str=str), file=sys.stderr)
 
 def switch(path):
 	"""Switch to new buffer if 'path' is not 'None'.
@@ -29,15 +34,18 @@ def switch(path):
 	if path:
 		vim.command(":e {path}".format(path=path))
 	else:
-		print("vim-flipping: No matching file", file=sys.stderr)
+		warn("No matching file")
 
 def match(path):
 	"""Return the first matching file from the list of patterns.
 	"""
 	for pattern, replacement in subst.items():
-		newpath, n = re.subn(pattern, replacement, path)
-		if n > 0:
-			return newpath
+		try:
+			newpath, n = re.subn(pattern, replacement, path)
+			if n > 0:
+				return newpath
+		except re.error as ex:
+			warn("{ex} in {pattern}".format(ex=ex, pattern=pattern))
 
 switch(match(filepath))
 PYTHON
