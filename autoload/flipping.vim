@@ -15,7 +15,7 @@ if !exists('g:vim_flipping_substitutions')
 	let g:vim_flipping_substitutions = {}
 endif
 
-func! flipping#flip()
+function! flipping#flip()
 python << PYTHON
 from __future__ import print_function
 import errno
