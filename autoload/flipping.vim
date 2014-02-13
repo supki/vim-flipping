@@ -41,11 +41,17 @@ def main():
 
 def switch(path):
     """Switch to new buffer if 'path' is not 'None'.
+
+    If buffer for 'path' has been opened already just move in
+    with ':b', otherwise open a new buffer with ':e'.
     """
     if path:
-        if MKDIR_P:
-            mkdir_p(path)
-        vim.command(":e {path}".format(path=path))
+        if path in map(lambda b: b.name, vim.buffers):
+            vim.command(":b {path}".format(path=path))
+        else:
+            if MKDIR_P:
+                mkdir_p(path)
+            vim.command(":e {path}".format(path=path))
     else:
         warn("No matching file")
 
