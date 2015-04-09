@@ -23,15 +23,9 @@ import os
 import re
 import vim
 
-def read_global_var(var):
-    try:
-        return vim.vars[var]
-    except AttributeError:
-        return vim.eval("g:{var}".format(var=var))
-
 FILEPATH = vim.eval("expand('%:p')")
-MKDIR_P  = str(read_global_var("vim_flipping_mkdir")) == "1"
-SUBST    = read_global_var("vim_flipping_substitutions")
+MKDIR_P  = vim.vars["vim_flipping_mkdir"] == 1
+SUBST    = vim.vars["vim_flipping_substitutions"]
 
 def main():
     try:
