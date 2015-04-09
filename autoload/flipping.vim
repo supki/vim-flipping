@@ -15,7 +15,7 @@ if !exists('g:vim_flipping_substitutions')
 	let g:vim_flipping_substitutions = {}
 endif
 
-function! flipping#flip()
+function! flipping#flip(mode)
 python << PYTHON
 from __future__ import print_function
 import errno
@@ -26,6 +26,7 @@ import vim
 FILEPATH = vim.eval("expand('%:p')")
 MKDIR_P  = vim.vars["vim_flipping_mkdir"] == 1
 SUBST    = vim.vars["vim_flipping_substitutions"]
+MODE     = vim.bindeval("a:mode")
 
 def main():
     try:
@@ -41,11 +42,11 @@ def switch(path):
     """
     if path:
         if path in map(lambda b: b.name, vim.buffers):
-            vim.command(":b {path}".format(path=path))
+            vim.command(":buffer {path}".format(path=path))
         else:
             if MKDIR_P:
                 mkdir_p(path)
-            vim.command(":e {path}".format(path=path))
+            vim.command(":{mode} {path}".format(mode=MODE, path=path))
     else:
         warn("No matching file")
 
@@ -61,27 +62,20 @@ def mkdir_p(path):
 def match(path):
     """Return the first matching file from the list of patterns.
     """
-    for pattern, replacement in SUBST.items():
+    for pat, repl in SUBST.items():
         try:
-            newpath, n = re.subn(pattern, replacement, path)
+            newpath, n = re.subn(pat, repl, path)
             if n > 0:
                 return newpath
         except re.error as ex:
-            error("{ex} in {pat}, {repl} pair".format(ex=ex, pat=pattern, repl=replacement))
-
-class FlippingError(StandardError):
-    pass
+            error("{ex} in ({pat}, {repl}) pair".format(ex=ex, pat=pat, repl=repl))
 
 def warn(str):
-    """Print a message to stderr with the plugin name prefix.
-    """
     print("vim-flipping: {str}".format(str=str), file=sys.stderr)
 
 def error(str):
-    """Warn and exit.
-    """
     warn(str)
-    raise FlippingError("Terminated")
+    raise StandardError("Terminated")
 
 main()
 PYTHON
